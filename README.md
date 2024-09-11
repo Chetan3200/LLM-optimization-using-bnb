@@ -2,6 +2,21 @@
 
 This project implements a novel, generalized model optimization and inference script for `MistralForCausalLM` based LLMs. It aims to improve the performance of LLM inference in terms of latency and throughput.
 
+
+## Before we begin..
+
+- Before settling on using bitsandbytes for quantization, I experimented with two other libraries, deepspeed-fastgen and vllm. deepspeed-fastgen is the lastest
+  library for inference optimization and claims to perform better than vllm. However, there are certain hardware requirements of using deepspeed-fastgen such as
+  NVIDIA GPU(s) with compute capability of: 8.0, 8.6, 8.9, 9.0. (T4 has compute capability of 7.5 because of which, deepspeed-fastgen could not be testing on colab)
+  CUDA toolkit 11.6+ 
+  Ubuntu 20+ 
+  I tried testing it on A6000 GPU (compute capability 8.6) as I have its lab access. But the script ran into errors and it has unresolved bugs which are still open
+  issues on deepspeed-fastgen's github.
+- Next I tried experimenting with vllm, the issue with vllm was that, it offered quantization upto 8 bit. It also offered GPU offloading but on experimenting I found
+  it reduced the throughput. It has some more advanced quantization techniques like gptq and AWQ, but vllm requires the original model on huggingface to be pre-quantized
+  so it can check for quant config in the config file of the huggingface model. It cannot perform in flight quantization like bitsandbytes.
+- Finally I settled on bitsandbytes and the following benchmark results and script is based on that.
+  
 ## Project Structure
 
 - `pipeline.py`: The main script that accepts a Hugging Face model path, optimizes the model, and runs inference on user input.
@@ -80,12 +95,5 @@ This implementation aims to beat the following benchmarks:
 - The script is optimized for the specified GPU (NVIDIA Tesla T4), but may work on other CUDA-capable GPUs with sufficient memory.
 - Performance may vary based on the specific model used and the complexity of the input prompts.
 
-## Troubleshooting
+ 
 
-If you encounter any issues:
-
-1. Ensure all dependencies are correctly installed.
-2. Verify that your CUDA installation is correct and compatible with the installed PyTorch version.
-3. Check that your GPU has sufficient available memory.
-
-For further assistance, please open an issue in the project repository.
